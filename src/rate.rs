@@ -8,7 +8,8 @@ use core::ops;
 ///
 /// The generic `T` can either be `u32` or `u64`, and the const generics represent the ratio of the
 /// raw contained within the rate: `rate in Hz = NOM / DENOM * raw`
-#[derive(Clone, Copy, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy)]
 pub struct Rate<T, const NOM: u32, const DENOM: u32> {
     pub(crate) raw: T,
 }
@@ -566,6 +567,7 @@ macro_rules! impl_rate_for_integer {
             }
         }
 
+        #[cfg(not(feature = "certified_subset"))]
         impl<const NOM: u32, const DENOM: u32> core::fmt::Display for Rate<$i, NOM, DENOM> {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if NOM == 1 && DENOM == 1 {
