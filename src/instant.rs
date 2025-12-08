@@ -12,7 +12,8 @@ use core::ops;
     feature = "postcard_max_size",
     derive(postcard::experimental::max_size::MaxSize)
 )]
-#[derive(Clone, Copy, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy)]
 pub struct Instant<T, const NOM: u64, const DENOM: u64> {
     ticks: T,
 }
@@ -335,6 +336,7 @@ macro_rules! impl_instant_for_integer {
             }
         }
 
+        #[cfg(not(feature = "certified_subset"))]
         impl<const NOM: u64, const DENOM: u64> core::fmt::Display for Instant<$i, NOM, DENOM> {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if NOM == 3_600 && DENOM == 1 {

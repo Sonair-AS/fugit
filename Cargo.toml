@@ -16,6 +16,7 @@ license = "MIT OR Apache-2.0"
 default = []
 serde = ["dep:serde"]
 postcard_max_size = ["dep:postcard", "serde"]
+certified_subset = []
 
 [dependencies]
 gcd = "2.3"
