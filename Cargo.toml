@@ -16,7 +16,7 @@ license = "MIT OR Apache-2.0"
 certified_subset = []
 
 [dependencies]
-gcd = { git = "https://github.com/Sonair-AS/rust-gcd.git", tag = "2.3.0" }
+gcd = { git = "https://github.com/Sonair-AS/rust-gcd.git", branch = "certified_subset" }
 
 [dependencies.defmt]
 version = ">=0.2.0,<0.4"
