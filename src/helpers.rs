@@ -45,17 +45,17 @@ impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     pub const SAME_BASE: bool = Self::LD_TIMES_RN == Self::RD_TIMES_LN;
 }
 
-#[allow(dead_code)]
-#[allow(path_statements)]
+#[allow(dead_code)] // Used conditionally depending on which types are instantiated.
+#[allow(path_statements)] // The statement `Assert::<N, 0>::GREATER;` triggers a const-eval panic if N == 0; the "unused" path_statement is the assertion mechanism.
 pub(crate) const fn greater_than_0<const N: u32>() {
     Assert::<N, 0>::GREATER;
 }
 
-#[allow(dead_code)]
+#[allow(dead_code)] // Some variants are only used by specific const generic instantiations.
 /// Const assert hack
 pub struct Assert<const L: u32, const R: u32>;
 
-#[allow(dead_code)]
+#[allow(dead_code)] // Not all assertion constants are used; they form a reusable const-assert toolkit.
 impl<const L: u32, const R: u32> Assert<L, R> {
     /// Const assert hack
     pub const GREATER_EQ: () = assert!(L >= R);

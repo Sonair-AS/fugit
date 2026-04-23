@@ -1,6 +1,7 @@
 use crate::helpers::{self, Helpers};
 use crate::Rate;
 use core::cmp::Ordering;
+#[cfg(not(feature = "certified_subset"))]
 use core::convert;
 use core::ops;
 
@@ -99,8 +100,8 @@ macro_rules! impl_duration_for_integer {
             #[doc = concat!("let d2 = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
             #[doc = concat!("let d3 = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(", stringify!($i), "::MAX);")]
             ///
-            /// assert_eq!(d1.checked_add(d2).unwrap().ticks(), 3);
-            /// assert_eq!(d1.checked_add(d3), None);
+            /// assert!(d1.checked_add(d2).unwrap().ticks() == 3);
+            /// assert!(d1.checked_add(d3).is_none());
             /// ```
             pub const fn checked_add<const O_NOM: u32, const O_DENOM: u32>(
                 self,
@@ -138,8 +139,8 @@ macro_rules! impl_duration_for_integer {
             #[doc = concat!("let d2 = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
             #[doc = concat!("let d3 = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(", stringify!($i), "::MAX);")]
             ///
-            /// assert_eq!(d2.checked_sub(d1).unwrap().ticks(), 1);
-            /// assert_eq!(d1.checked_sub(d3), None);
+            /// assert!(d2.checked_sub(d1).unwrap().ticks() == 1);
+            /// assert!(d1.checked_sub(d3).is_none());
             /// ```
             pub const fn checked_sub<const O_NOM: u32, const O_DENOM: u32>(
                 self,
@@ -316,7 +317,7 @@ macro_rules! impl_duration_for_integer {
             #[doc = concat!("let d1 = Duration::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
             #[doc = concat!("let r1: Option<Rate::<", stringify!($i), ", 1, 1>> = d1.try_into_rate();")]
             ///
-            /// assert_eq!(r1.unwrap().raw(), 500);
+            /// assert!(r1.unwrap().raw() == 500);
             /// ```
             #[inline]
             pub const fn try_into_rate<const O_NOM: u32, const O_DENOM: u32>(
@@ -344,7 +345,7 @@ macro_rules! impl_duration_for_integer {
             #[doc = concat!("let r1 = Rate::<", stringify!($i), ", 1, 1>::from_raw(1);")]
             #[doc = concat!("let d1 = Duration::<", stringify!($i), ", 1, 1_000>::try_from_rate(r1);")]
             ///
-            /// assert_eq!(d1.unwrap().ticks(), 1_000);
+            /// assert!(d1.unwrap().ticks() == 1_000);
             /// ```
             #[inline]
             pub const fn try_from_rate<const I_NOM: u32, const I_DENOM: u32>(
@@ -397,7 +398,7 @@ macro_rules! impl_duration_for_integer {
                 if let Some(v) = self.const_try_into() {
                     v
                 } else {
-                    panic!("Convert failed!");
+                    panic!("Convert failed!")
                 }
             }
 
@@ -410,21 +411,21 @@ macro_rules! impl_duration_for_integer {
 
             /// Shorthand for creating a duration which represents hertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // Hz is the SI symbol for hertz.
             pub const fn Hz(val: $i) -> Self {
                 Self::from_rate(crate::Hertz::<$i>::from_raw(val))
             }
 
             /// Shorthand for creating a duration which represents kilohertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // kHz is the SI symbol for kilohertz.
             pub const fn kHz(val: $i) -> Self {
                 Self::from_rate(crate::Kilohertz::<$i>::from_raw(val))
             }
 
             /// Shorthand for creating a duration which represents megahertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // MHz is the SI symbol for megahertz.
             pub const fn MHz(val: $i) -> Self {
                 Self::from_rate(crate::Megahertz::<$i>::from_raw(val))
             }
@@ -441,6 +442,7 @@ macro_rules! impl_duration_for_integer {
 
         impl<const NOM: u32, const DENOM: u32> Ord for Duration<$i, NOM, DENOM> {
             #[inline]
+            #[cfg_attr(coverage_nightly, coverage(off))] // Trivial delegation to _const_cmp which is already covered via PartialOrd and direct tests.
             fn cmp(&self, other: &Self) -> Ordering {
                 Self::_const_cmp(self.ticks, other.ticks)
             }
@@ -469,7 +471,7 @@ macro_rules! impl_duration_for_integer {
                 if let Some(v) = self.checked_sub(other) {
                     v
                 } else {
-                    panic!("Sub failed!");
+                    panic!("Sub failed!")
                 }
             }
         }
@@ -496,7 +498,7 @@ macro_rules! impl_duration_for_integer {
                 if let Some(v) = self.checked_add(other) {
                     v
                 } else {
-                    panic!("Add failed!");
+                    panic!("Add failed!")
                 }
             }
         }
@@ -601,6 +603,7 @@ macro_rules! impl_duration_for_integer {
 
         #[cfg(not(feature = "certified_subset"))]
         impl<const NOM: u32, const DENOM: u32> core::fmt::Display for Duration<$i, NOM, DENOM> {
+            #[cfg_attr(coverage_nightly, coverage(off))] // Display formatting is not safety-relevant and is gated out under certified_subset.
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if NOM == 3_600 && DENOM == 1 {
                     write!(f, "{} h", self.ticks)
@@ -629,6 +632,7 @@ impl_duration_for_integer!(u64);
 // Operations between u32 and u64 Durations
 //
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> From<Duration<u32, NOM, DENOM>>
     for Duration<u64, NOM, DENOM>
 {
@@ -638,6 +642,7 @@ impl<const NOM: u32, const DENOM: u32> From<Duration<u32, NOM, DENOM>>
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> convert::TryFrom<Duration<u64, NOM, DENOM>>
     for Duration<u32, NOM, DENOM>
 {
@@ -651,8 +656,7 @@ impl<const NOM: u32, const DENOM: u32> convert::TryFrom<Duration<u64, NOM, DENOM
     }
 }
 
-// Duration - Duration = Duration (to make shorthands work, until const_generics_defaults is
-// stabilized)
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::Sub<Duration<u32, NOM, DENOM>>
     for Duration<u64, NOM, DENOM>
 {
@@ -665,12 +669,12 @@ impl<const NOM: u32, const DENOM: u32> ops::Sub<Duration<u32, NOM, DENOM>>
         {
             v
         } else {
-            panic!("Sub failed!");
+            panic!("Sub failed!")
         }
     }
 }
 
-// Duration -= Duration (to make shorthands work, until const_generics_defaults is stabilized)
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::SubAssign<Duration<u32, NOM, DENOM>>
     for Duration<u64, NOM, DENOM>
 {
@@ -680,8 +684,7 @@ impl<const NOM: u32, const DENOM: u32> ops::SubAssign<Duration<u32, NOM, DENOM>>
     }
 }
 
-// Duration + Duration = Duration (to make shorthands work, until const_generics_defaults is
-// stabilized)
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::Add<Duration<u32, NOM, DENOM>>
     for Duration<u64, NOM, DENOM>
 {
@@ -694,12 +697,12 @@ impl<const NOM: u32, const DENOM: u32> ops::Add<Duration<u32, NOM, DENOM>>
         {
             v
         } else {
-            panic!("Add failed!");
+            panic!("Add failed!")
         }
     }
 }
 
-// Duration += Duration (to make shorthands work, until const_generics_defaults is stabilized)
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::AddAssign<Duration<u32, NOM, DENOM>>
     for Duration<u64, NOM, DENOM>
 {
@@ -709,6 +712,7 @@ impl<const NOM: u32, const DENOM: u32> ops::AddAssign<Duration<u32, NOM, DENOM>>
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     PartialOrd<Duration<u32, R_NOM, R_DENOM>> for Duration<u64, L_NOM, L_DENOM>
 {
@@ -720,6 +724,7 @@ impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     PartialEq<Duration<u32, R_NOM, R_DENOM>> for Duration<u64, L_NOM, L_DENOM>
 {
@@ -731,6 +736,7 @@ impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     PartialOrd<Duration<u64, R_NOM, R_DENOM>> for Duration<u32, L_NOM, L_DENOM>
 {
@@ -740,6 +746,7 @@ impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
     PartialEq<Duration<u64, R_NOM, R_DENOM>> for Duration<u32, L_NOM, L_DENOM>
 {
@@ -802,6 +809,7 @@ impl ExtU32 for u32 {
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 /// Extension trait for simple short-hands for u32 Durations (ceil rounded)
 pub trait ExtU32Ceil {
     /// Shorthand for creating a duration which represents nanoseconds.
@@ -823,6 +831,7 @@ pub trait ExtU32Ceil {
     fn hours_at_least<const NOM: u32, const DENOM: u32>(self) -> Duration<u32, NOM, DENOM>;
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl ExtU32Ceil for u32 {
     #[inline]
     fn nanos_at_least<const NOM: u32, const DENOM: u32>(self) -> Duration<u32, NOM, DENOM> {
@@ -855,6 +864,7 @@ impl ExtU32Ceil for u32 {
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 /// Extension trait for simple short-hands for u64 Durations
 pub trait ExtU64 {
     /// Shorthand for creating a duration which represents nanoseconds.
@@ -876,6 +886,7 @@ pub trait ExtU64 {
     fn hours<const NOM: u32, const DENOM: u32>(self) -> Duration<u64, NOM, DENOM>;
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl ExtU64 for u64 {
     #[inline]
     fn nanos<const NOM: u32, const DENOM: u32>(self) -> Duration<u64, NOM, DENOM> {
@@ -908,6 +919,7 @@ impl ExtU64 for u64 {
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 /// Extension trait for simple short-hands for u64 Durations (ceil rounded)
 pub trait ExtU64Ceil {
     /// Shorthand for creating a duration which represents nanoseconds.
@@ -929,6 +941,7 @@ pub trait ExtU64Ceil {
     fn hours_at_least<const NOM: u32, const DENOM: u32>(self) -> Duration<u64, NOM, DENOM>;
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl ExtU64Ceil for u64 {
     #[inline]
     fn nanos_at_least<const NOM: u32, const DENOM: u32>(self) -> Duration<u64, NOM, DENOM> {
