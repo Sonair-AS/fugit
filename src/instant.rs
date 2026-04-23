@@ -103,8 +103,8 @@ macro_rules! impl_instant_for_integer {
             #[doc = concat!("let i1 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(1);")]
             #[doc = concat!("let i2 = Instant::<", stringify!($i), ", 1, 1_000>::from_ticks(2);")]
             ///
-            /// assert_eq!(i1.checked_duration_since(i2), None);
-            /// assert_eq!(i2.checked_duration_since(i1).unwrap().ticks(), 1);
+            /// assert!(i1.checked_duration_since(i2).is_none());
+            /// assert!(i2.checked_duration_since(i1).unwrap().ticks() == 1);
             /// ```
             #[inline]
             pub const fn checked_duration_since(
@@ -188,6 +188,7 @@ macro_rules! impl_instant_for_integer {
             }
         }
 
+        #[allow(clippy::non_canonical_partial_ord_impl)] // Intentional: both partial_cmp and Ord::cmp call const_cmp directly to keep const_cmp testable via partial_cmp coverage (Ord::cmp is coverage(off)).
         impl<const NOM: u32, const DENOM: u32> PartialOrd for Instant<$i, NOM, DENOM> {
             /// This implementation deviates from the definition of
             /// [PartialOrd::partial_cmp](core::cmp::PartialOrd::partial_cmp):
@@ -213,6 +214,7 @@ macro_rules! impl_instant_for_integer {
             ///
             /// That breaks the transitivity invariant: a < b and b < c no longer implies a < c.
             #[inline]
+            #[cfg_attr(coverage_nightly, coverage(off))] // Trivial delegation to const_cmp which is already covered via PartialOrd and direct tests.
             fn cmp(&self, other: &Self) -> Ordering {
                 self.const_cmp(*other)
             }
@@ -241,7 +243,7 @@ macro_rules! impl_instant_for_integer {
                 if let Some(v) = self.checked_duration_since(other) {
                     v
                 } else {
-                    panic!("Sub failed! Other > self");
+                    panic!("Sub failed! Other > self")
                 }
             }
         }
@@ -260,7 +262,7 @@ macro_rules! impl_instant_for_integer {
                 if let Some(v) = self.checked_sub_duration(other) {
                     v
                 } else {
-                    panic!("Sub failed! Overflow");
+                    panic!("Sub failed! Overflow")
                 }
             }
         }
@@ -292,7 +294,7 @@ macro_rules! impl_instant_for_integer {
                 if let Some(v) = self.checked_add_duration(other) {
                     v
                 } else {
-                    panic!("Add failed! Overflow");
+                    panic!("Add failed! Overflow")
                 }
             }
         }
@@ -333,6 +335,7 @@ macro_rules! impl_instant_for_integer {
 
         #[cfg(not(feature = "certified_subset"))]
         impl<const NOM: u32, const DENOM: u32> core::fmt::Display for Instant<$i, NOM, DENOM> {
+            #[cfg_attr(coverage_nightly, coverage(off))] // Display formatting is not safety-relevant and is gated out under certified_subset.
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                 if NOM == 3_600 && DENOM == 1 {
                     write!(f, "{} h", self.ticks)
@@ -361,10 +364,7 @@ impl_instant_for_integer!(u64);
 // Operations between u32 Duration and u64 Instant
 //
 
-// Instant - Duration = Instant
-// We have limited this to use same numerator and denominator in both left and right hand sides,
-// this allows for the extension traits to work. For usage with different fraction, use
-// `checked_sub_duration`.
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::Sub<Duration<u32, NOM, DENOM>>
     for Instant<u64, NOM, DENOM>
 {
@@ -375,15 +375,12 @@ impl<const NOM: u32, const DENOM: u32> ops::Sub<Duration<u32, NOM, DENOM>>
         if let Some(v) = self.checked_sub_duration(other.into()) {
             v
         } else {
-            panic!("Sub failed! Overflow");
+            panic!("Sub failed! Overflow")
         }
     }
 }
 
-// Instant -= Duration
-// We have limited this to use same numerator and denominator in both left and right hand sides,
-// this allows for the extension traits to work. For usage with different fraction, use
-// `checked_sub_duration`.
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::SubAssign<Duration<u32, NOM, DENOM>>
     for Instant<u64, NOM, DENOM>
 {
@@ -393,10 +390,7 @@ impl<const NOM: u32, const DENOM: u32> ops::SubAssign<Duration<u32, NOM, DENOM>>
     }
 }
 
-// Instant + Duration = Instant
-// We have limited this to use same numerator and denominator in both left and right hand sides,
-// this allows for the extension traits to work. For usage with different fraction, use
-// `checked_add_duration`.
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::Add<Duration<u32, NOM, DENOM>>
     for Instant<u64, NOM, DENOM>
 {
@@ -407,15 +401,12 @@ impl<const NOM: u32, const DENOM: u32> ops::Add<Duration<u32, NOM, DENOM>>
         if let Some(v) = self.checked_add_duration(other.into()) {
             v
         } else {
-            panic!("Add failed! Overflow");
+            panic!("Add failed! Overflow")
         }
     }
 }
 
-// Instant += Duration
-// We have limited this to use same numerator and denominator in both left and right hand sides,
-// this allows for the extension traits to work. For usage with different fraction, use
-// `checked_add_duration`.
+#[cfg(not(feature = "certified_subset"))]
 impl<const NOM: u32, const DENOM: u32> ops::AddAssign<Duration<u32, NOM, DENOM>>
     for Instant<u64, NOM, DENOM>
 {

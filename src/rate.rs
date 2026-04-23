@@ -52,8 +52,8 @@ macro_rules! impl_rate_for_integer {
             #[doc = concat!("let r2 = Rate::<", stringify!($i), ", 1, 1_000>::from_raw(2);")]
             #[doc = concat!("let r3 = Rate::<", stringify!($i), ", 1, 1_000>::from_raw(", stringify!($i), "::MAX);")]
             ///
-            /// assert_eq!(r1.checked_add(r2).unwrap().raw(), 3);
-            /// assert_eq!(r1.checked_add(r3), None);
+            /// assert!(r1.checked_add(r2).unwrap().raw() == 3);
+            /// assert!(r1.checked_add(r3).is_none());
             /// ```
             pub const fn checked_add<const O_NOM: u32, const O_DENOM: u32>(
                 self,
@@ -91,8 +91,8 @@ macro_rules! impl_rate_for_integer {
             #[doc = concat!("let r2 = Rate::<", stringify!($i), ", 1, 1_000>::from_raw(2);")]
             #[doc = concat!("let r3 = Rate::<", stringify!($i), ", 1, 1_000>::from_raw(", stringify!($i), "::MAX);")]
             ///
-            /// assert_eq!(r2.checked_sub(r1).unwrap().raw(), 1);
-            /// assert_eq!(r1.checked_sub(r3), None);
+            /// assert!(r2.checked_sub(r1).unwrap().raw() == 1);
+            /// assert!(r1.checked_sub(r3).is_none());
             /// ```
             pub const fn checked_sub<const O_NOM: u32, const O_DENOM: u32>(
                 self,
@@ -341,7 +341,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Convert the Rate to an interger number of Hz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // Hz is the SI symbol for hertz.
             pub const fn to_Hz(&self) -> $i {
                     (Helpers::<1, 1, NOM, DENOM>::LD_TIMES_RN as $i * self.raw)
                         / Helpers::<1, 1, NOM, DENOM>::RD_TIMES_LN as $i
@@ -349,7 +349,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Convert the Rate to an interger number of kHz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // kHz is the SI symbol for kilohertz.
             pub const fn to_kHz(&self) -> $i {
                     (Helpers::<1_000, 1, NOM, DENOM>::LD_TIMES_RN as $i * self.raw)
                         / Helpers::<1_000, 1, NOM, DENOM>::RD_TIMES_LN as $i
@@ -357,7 +357,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Convert the Rate to an interger number of MHz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // MHz is the SI symbol for megahertz.
             pub const fn to_MHz(&self) -> $i {
                     (Helpers::<1_000_000, 1, NOM, DENOM>::LD_TIMES_RN as $i * self.raw)
                         / Helpers::<1_000_000, 1, NOM, DENOM>::RD_TIMES_LN as $i
@@ -365,7 +365,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Shorthand for creating a rate which represents hertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // Hz is the SI symbol for hertz.
             pub const fn Hz(val: $i) -> Self {
                 Self::from_raw(
                     (Helpers::<1, 1, NOM, DENOM>::RD_TIMES_LN as $i * val)
@@ -375,7 +375,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Shorthand for creating a rate which represents kilohertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // kHz is the SI symbol for kilohertz.
             pub const fn kHz(val: $i) -> Self {
                 Self::from_raw(
                     (Helpers::<1_000, 1, NOM, DENOM>::RD_TIMES_LN as $i * val)
@@ -385,7 +385,7 @@ macro_rules! impl_rate_for_integer {
 
             /// Shorthand for creating a rate which represents megahertz.
             #[inline]
-            #[allow(non_snake_case)]
+            #[allow(non_snake_case)] // MHz is the SI symbol for megahertz.
             pub const fn MHz(val: $i) -> Self {
                 Self::from_raw(
                     (Helpers::<1_000_000, 1, NOM, DENOM>::RD_TIMES_LN as $i * val)
@@ -702,68 +702,70 @@ impl<const L_NOM: u32, const L_DENOM: u32, const R_NOM: u32, const R_DENOM: u32>
 /// Extension trait for simple short-hands for u32 Rate
 pub trait ExtU32 {
     /// Shorthand for creating a rate which represents hertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn Hz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM>;
 
     /// Shorthand for creating a rate which represents kilohertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn kHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM>;
 
     /// Shorthand for creating a rate which represents megahertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn MHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM>;
 }
 
 impl ExtU32 for u32 {
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn Hz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM> {
         Rate::<u32, NOM, DENOM>::Hz(self)
     }
 
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn kHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM> {
         Rate::<u32, NOM, DENOM>::kHz(self)
     }
 
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn MHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u32, NOM, DENOM> {
         Rate::<u32, NOM, DENOM>::MHz(self)
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 /// Extension trait for simple short-hands for u64 Rate
 pub trait ExtU64 {
     /// Shorthand for creating a rate which represents hertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn Hz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM>;
 
     /// Shorthand for creating a rate which represents kilohertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn kHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM>;
 
     /// Shorthand for creating a rate which represents megahertz.
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn MHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM>;
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl ExtU64 for u64 {
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn Hz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM> {
         Rate::<u64, NOM, DENOM>::Hz(self)
     }
 
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn kHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM> {
         Rate::<u64, NOM, DENOM>::kHz(self)
     }
 
     #[inline]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case)] // SI symbol.
     fn MHz<const NOM: u32, const DENOM: u32>(self) -> Rate<u64, NOM, DENOM> {
         Rate::<u64, NOM, DENOM>::MHz(self)
     }

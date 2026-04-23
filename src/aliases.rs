@@ -80,6 +80,7 @@ pub type TimerInstantU64<const FREQ_HZ: u32> = Instant<u64, 1, FREQ_HZ>;
 
 // -------------------------------
 
+
 /// Alias for hertz rate
 pub type Hertz<T> = Rate<T, 1, 1>;
 
